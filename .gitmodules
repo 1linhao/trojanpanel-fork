@@ -1,0 +1,15 @@
+[submodule "trojan-panel"]
+	path = trojan-panel
+	url = git@github.com:1linhao/trojan-panel.git
+[submodule "trojan-panel-core"]
+	path = trojan-panel-core
+	url = git@github.com:1linhao/trojan-panel-core.git
+[submodule "trojan-panel-ui"]
+	path = trojan-panel-ui
+	url = git@github.com:1linhao/trojan-panel-ui.git
+[submodule "trojan-panel-install-script"]
+	path = trojan-panel-install-script
+	url = git@github.com:1linhao/trojan-panel-install-script.git
+[submodule "trojanpanel.github.io"]
+	path = trojanpanel.github.io
+	url = git@github.com:1linhao/trojanpanel.github.io.git
