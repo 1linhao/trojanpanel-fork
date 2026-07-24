@@ -9,7 +9,7 @@ set -Eeuo pipefail
 
 backend_name="trojan-panel"
 ui_name="trojan-panel-ui"
-backend_image="ghcr.io/1linhao/trojan-panel@sha256:774db5e69c20c187ed8a2aa68a8ffe7387de8081b40a692019c80e63cd77b06a"
+backend_image="ghcr.io/1linhao/trojan-panel@sha256:ccf1c8879dade04eac3139e79a8cd215fab5a4097dd59d42c2c804aad7782e17"
 ui_image="ghcr.io/1linhao/trojan-panel-ui@sha256:bba5dd2da82de44887888373b7b365da4586f53e7fa1506d6a3e1135f83c9c00"
 release_id="$(date +%Y%m%d-%H%M%S)"
 backend_backup="${backend_name}-rollback-${release_id}"
@@ -84,13 +84,17 @@ docker run -d \
 
 backend_ready=0
 for _ in $(seq 1 30); do
-  if curl -fsS http://127.0.0.1:8081/api/auth/setting >/dev/null; then
+  if curl -fsS http://127.0.0.1:8081/api/auth/setting >/dev/null 2>&1; then
     backend_ready=1
     break
   fi
   sleep 2
 done
-test "${backend_ready}" -eq 1
+if [ "${backend_ready}" -ne 1 ]; then
+  echo "Backend health check failed." >&2
+  docker logs --tail 100 "${backend_name}" >&2 || true
+  exit 1
+fi
 
 # Preserve the current compatibility decision for existing NaiveProxy nodes.
 docker exec trojan-panel-mariadb sh -lc \
@@ -110,14 +114,18 @@ docker run -d \
 
 ui_ready=0
 for _ in $(seq 1 30); do
-  if curl -fsS http://127.0.0.1:8888/ >/dev/null &&
-    curl -fsS http://127.0.0.1:8888/api/auth/setting >/dev/null; then
+  if curl -fsS http://127.0.0.1:8888/ >/dev/null 2>&1 &&
+    curl -fsS http://127.0.0.1:8888/api/auth/setting >/dev/null 2>&1; then
     ui_ready=1
     break
   fi
   sleep 2
 done
-test "${ui_ready}" -eq 1
+if [ "${ui_ready}" -ne 1 ]; then
+  echo "UI health check failed." >&2
+  docker logs --tail 100 "${ui_name}" >&2 || true
+  exit 1
+fi
 
 docker exec trojan-panel-mariadb sh -lc \
   'mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -N -e "SELECT client_types, COUNT(*) FROM node GROUP BY client_types ORDER BY client_types"'
