@@ -9,8 +9,8 @@ set -Eeuo pipefail
 
 backend_name="trojan-panel"
 ui_name="trojan-panel-ui"
-backend_image="ghcr.io/1linhao/trojan-panel:singbox"
-ui_image="ghcr.io/1linhao/trojan-panel-ui:singbox"
+backend_image="ghcr.io/1linhao/trojan-panel@sha256:774db5e69c20c187ed8a2aa68a8ffe7387de8081b40a692019c80e63cd77b06a"
+ui_image="ghcr.io/1linhao/trojan-panel-ui@sha256:bba5dd2da82de44887888373b7b365da4586f53e7fa1506d6a3e1135f83c9c00"
 release_id="$(date +%Y%m%d-%H%M%S)"
 backend_backup="${backend_name}-rollback-${release_id}"
 ui_backup="${ui_name}-rollback-${release_id}"
