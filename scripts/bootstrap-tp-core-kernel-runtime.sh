@@ -152,16 +152,7 @@ EOF
 snapshot_kernel xray xray legacy-v1.8.4
 snapshot_kernel hysteria2 hysteria2 legacy-v2.0.4-dev
 install -m 0644 "$ca_source" "$data_root/pki/client-ca.crt"
-rm -f "$ca_source"
-
-if [[ "$cleanup_sf" == "true" ]]; then
-  certbot delete --cert-name hy2sf2.lhsite.site --non-interactive || true
-  rm -rf /etc/letsencrypt/live/hy2sf2.lhsite.site \
-    /etc/letsencrypt/archive/hy2sf2.lhsite.site
-  rm -f /etc/letsencrypt/renewal/hy2sf2.lhsite.site.conf
-  find /etc/letsencrypt/renewal-hooks -type f -maxdepth 2 \
-    -exec grep -l 'hy2sf2\.lhsite\.site' {} \; -delete 2>/dev/null || true
-fi
+unlink "$ca_source"
 
 yq -i \
   ".trojan_panel.core_image = \"$image\" |
@@ -188,7 +179,29 @@ done
 docker exec "$container" test -x "$data_root/runtime/xray/current/xray"
 docker exec "$container" test -x "$data_root/runtime/hysteria2/current/hysteria2"
 
+# The replacement is now healthy. Certificate incident cleanup must never
+# roll the Core back after this point.
 trap - ERR
+
+# Only remove the wrongly copied SF lineage after the replacement Core has
+# passed its health checks. A failed upgrade therefore leaves the old
+# certificate state untouched for the rollback path.
+if [[ "$cleanup_sf" == "true" ]]; then
+  certbot delete --cert-name hy2sf2.lhsite.site --non-interactive || true
+  for copied_path in \
+    /etc/letsencrypt/live/hy2sf2.lhsite.site \
+    /etc/letsencrypt/archive/hy2sf2.lhsite.site; do
+    if [[ -d "$copied_path" ]]; then
+      find "$copied_path" -depth -delete
+    fi
+  done
+  if [[ -f /etc/letsencrypt/renewal/hy2sf2.lhsite.site.conf ]]; then
+    unlink /etc/letsencrypt/renewal/hy2sf2.lhsite.site.conf
+  fi
+  find /etc/letsencrypt/renewal-hooks -maxdepth 2 -type f \
+    -exec grep -l 'hy2sf2\.lhsite\.site' {} \; -delete 2>/dev/null || true
+fi
+
 echo "升级完成。备份位于：$backup_root"
 REMOTE_APPLY
 status=$?
