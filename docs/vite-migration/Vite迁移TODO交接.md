@@ -1,3 +1,5 @@
+> 已完成的独立构建工具迁移记录；2026-09-01从web-ui目录移入本目录，不属于当前UI规范化待办。
+
 ## 2026-08-30 00:32
 
 # Trojan Panel UI 迁移 Vite：TODO 交接
@@ -19,7 +21,7 @@
 - 当前主要版本：Vue `2.6.14`、Vue CLI `4.5.17`、Webpack `4.46.0`
 - 当前 Node.js：`v22.23.2`，OpenSSL：`3.6.4`
 
-后续 UI 清理已改变工作树及图标实现。上述提交与版本仅为初始记录，不能据此回退代码；先阅读 [当前 UI 状态](README.md)，保留现有未提交修改。
+后续 UI 清理已改变工作树及图标实现。上述提交与版本仅为初始记录，不能据此回退代码；先阅读 [当前 UI 状态](../web-ui/README.md)，保留现有未提交修改。
 
 ## 研究与实施 TODO
 
@@ -77,7 +79,7 @@
 
 ```text
 请在 /home/lh/git/trojanpanel-fork 当前分支上研究并执行 Vite 迁移，
-以 /home/lh/git/trojanpanel-fork/docs/web-ui/Vite迁移TODO交接.md 为范围和验收依据。
+以 /home/lh/git/trojanpanel-fork/docs/vite-migration/Vite迁移TODO交接.md 为范围和验收依据。
 先完成技术研究再实施；不要更新系统软件、迁移 Vue 3 或顺带重构业务 UI。
 完成后运行现有 UI 库测试、生产构建和本地全栈 E2E，并提交 UI 子模块及父仓库指针。
 ```
