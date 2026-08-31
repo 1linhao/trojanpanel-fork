@@ -2,25 +2,20 @@
 
 早期五类规范化问题已完成代码修复；继续复查发现的遗漏登记在下方，尚未修复。可组合资源的后续迁移边界见 [当前状态](README.md)，不要将本列表理解为全部重构阶段均已完成。已完成的构建工具迁移不在本任务待办范围。
 
-## 待修复
-
-- [ ] WEB-016（P2）：统一个人资料、系统配置、订阅模板、节点导出四处页签的选中状态、面板关联和键盘操作，避免只有tablist外壳。同步检查首页周期/服务器限额选择组、主题radiogroup和桌面/移动导航：补匹配其类型的pressed/checked/current语义，主题单选组补方向键与焦点管理，不将所有选择组强制改为tab。
-- [ ] WEB-019（P2）：统一日期时间手输框与时间控件的草稿状态；手输完整日期时间后直接点确定，不应被旧timeText覆盖，Enter应用与点击确定应有相同结果。
-- [ ] WEB-020（P3）：LiquidCodeEditor接入共享表单标签及错误关联，保留显式可访问名称；模板内容标签可定位输入区，组件格式错误及FormItem错误均需关联到textarea，避免只有独立alert和通用“JSON/YAML 配置编辑器”名称。
-- [ ] WEB-021（P2）：删除订阅导出弹窗在≤640px下的独立顶部对齐/高度覆盖，回归共享Dialog安全区居中规则。618×918实测顶部20px，普通黑名单弹窗则正确居中；同时覆盖普通用户首页的同一导出入口。
-- [ ] WEB-025（P3）：清理旧详情实现及失去入口的路由：NodeDetail/NodeQrcode组件已无应用引用；旧server-detail路由仍注册，却依赖当前UI不再写入的nodeServerId Cookie。确认兼容边界后迁移/重定向或删除，不要把仍可访问的旧路由直接当死文件。
-- [ ] WEB-027（P2）：统一Web文件上传、账号/服务器导入的待提交/上传中/失败/成功状态。Web上传在请求完成前清空fileList，失败不能直接重试，原生file input也未清空；ImportTip提交无进行中防重入。对齐Logo上传已有的busy/finally控制，明确关闭/重选/失败后的草稿保留规则。
-- [ ] WEB-028（P2）：全局Select统一尺寸、尾部图标位置与内部留白，不仅修紧凑模式的文字截断。当前固定右40px/左14px内边距使箭头距右边框过远；内核版本通道117px控件另占20px箭头+10px间隔，42px的“正式版”只剩31px显示空间。按共享尺寸Token统一图标到右边框的间距，清空按钮和箭头槽位按实际状态分配，非clearable不预留空槽；覆盖sm/md/lg、手机/平板/桌面、有无清空及长文本，不采用页面级补丁。
-- [ ] WEB-031（P3）：登录/注册原生输入接入共享错误状态和标签协议。登录空值提交后错误可见，但input没有aria-invalid/aria-describedby；密码输入的可访问名称还混入显隐按钮名称。保留显隐按钮独立名称，关联错误并验证修改后提示更新，不以“用了原生label”视为完成表单规范化。
-- [ ] WEB-032（P2）：YAML与JSON必须作为共享编辑器中平级的语言能力，统一编辑、校验、格式化、错误反馈及表单集成契约；同一编辑器外壳按语言选择平级处理器，不能将YAML做成JSON的附属功能或仅为Clash.Meta写特例。当前Clash.Meta传format为空，按钮只在json模式显示，处理器也只支持JSON.parse/stringify。补齐YAML格式化按钮并保持与JSON相同的布局、样式和交互；保留YAML配置语义、注释及锚点/别名，解析失败提示对应语言错误且不覆盖原文，不通过转成JSON再转回来代替YAML编辑。两种语言分别覆盖合法/非法输入、空内容、格式化幂等、错误恢复与表单关联，并验证JSON无回退；不能只移除按钮的v-if。
-
-- [ ] WEB-033（P2）：统一表单项在各设备下的两行布局。用户反馈账号属性中的邮箱、用户名、密码三个输入框在平板/电脑模式下右边界参差不齐；以手机模式为统一布局，标签（标题）单独占第一行，关联输入框位于第二行，三个输入框共用宽度上限、左右对齐及标签/字段间距。同类表单项沿用此规则，长标签换行不得挤压或横向推移框体；在手机、平板、电脑下复核。保留共享最大宽度约束，不以全宽拉伸代替对齐。本项为用户反馈与布局要求，尚未重新实屏复现或修复。
-
-- [ ] WEB-014（P2，部分待验收）：修改密码与注册页密码字段错绑已完成源码修复（first字段绑定passOne/newPassOne并独立校验，second为确认字段，原密码必填提示改用table.oldPassRequired），但尚未实屏复现“第一新密码框已填写仍校验第二框并报空值”的原始反馈场景。
+2026-09-01：待修复清单中的全部源码修复项（WEB-014/015/016/017/018/019/020/021/022/023/024/025/026/027/028/029/030/031/032/033）均已完成并归档至下方「已完成归档」。本节仅保留需要实屏/真实环境验收的事项。
 
 ## 待验收
 
+以下事项源码层面已完成，但按验收口径需要实屏复核或真实后端确认后才能关闭：
+
 - [ ] WEB-010：补齐手机窄屏、长内容/多层弹窗和完整键盘流程验收。用户刷新后本地浏览器已可访问；913×918 下已检查服务器弹窗、内核紧凑控件、四组深浅色主题，以及服务器/任务/设置/个人页按钮。实屏发现的过渡覆盖和表单标签遗漏已修复；不能把当前窗口及 Node 契约测试等同于全尺寸、全页面通过。
+- [ ] WEB-014（收尾）：实屏复现“第一新密码框已填写仍校验第二框并报空值”的原始反馈场景，确认修复生效（注册页、个人资料修改密码两处）。
+- [ ] WEB-016（收尾）：键盘实屏走查 LiquidTabs 四处（个人资料、系统配置、订阅模板、订阅导出）方向键/Home/End 焦点移动，及主题 radiogroup 方向键。
+- [ ] WEB-021（收尾）：618×918 实屏复核订阅导出弹窗（节点页与普通用户首页两个入口）回归共享 Dialog 安全区居中。
+- [ ] WEB-023（收尾）：实屏确认使用 `.sync` 且 `getList` 忽略事件参数的列表页切页后选中态与查询页码一致。
+- [ ] WEB-028（收尾）：实屏覆盖 sm/md/lg、手机/平板/桌面、有无清空及长文本下 Select/DatePicker 尾部图标间距与文字显示空间（重点：内核版本通道 117px 控件“正式版”）。
+- [ ] WEB-032（收尾）：实屏验证 Clash.Meta YAML 模板格式化按钮、错误提示不覆盖原文、注释与缩进保留情况；JSON 无回退。
+- [ ] WEB-033（收尾）：手机、平板、电脑三种断点实屏复核账号属性三个输入框对齐及长标签换行表现。
 
 2026-09-01全路由首轮审查已覆盖14个页面路由及重定向，含43个views文件的页面/子面板清点；其中12个路由补充本轮实屏，404及旧服务器详情为源码检查。详见[全页面规范化检查](全页面规范化检查.md)。这不是全断点、所有数据状态或真实后端验收通过。
 
@@ -40,14 +35,25 @@
 - WEB-012：顶部账号头像和账号名组合为“我的”页入口，使用原生按钮并复用导航悬浮交互；退出按钮保持独立。
 - WEB-013：清除输入、数字、下拉、日期组件在手机断点取消最大宽度的旧规则；搜索框消费同一420px上限并允许内部输入收缩。618px窗口实测节点搜索框从558px恢复到420px，个人页三个输入框均为420px，无页面横向溢出；补充样式回归测试。更窄手机尺寸仍需另行实屏覆盖。
 
-- WEB-022：共享 `LiquidFormItem.validate` 按 `type: 'number'` 与数值型值比较范围，不再一律比较 `String(value).length`；字符串按字符数、数组按元素数校验，`type: 'number'` 下无法解析为有限数字的值判为错误。批量账号数量 5/6/500 及配额 -1/1024000 边界可通过。同步将四语言 `createBatchNumRange` 提示从 5–200 修正为后端 `CreateAccountBatchDto` 实际的 5–500；新增数值/字符串/数组边界回归测试（ui-cleanup.test.js）。数值字段实屏复测仍待登记。
-- WEB-023：Pagination 恢复受控契约：`handleCurrentChange`/`handleSizeChange` 先发 `update:page`/`update:limit` 供 `.sync` 更新父级状态，再发 `pagination` 通知查询；改变每页条数时按新容量收敛页码。新增事件顺序与页码收敛回归测试。使用 `.sync` 且 `getList` 忽略事件参数的列表页回归仍待实屏确认。
+- WEB-022：共享 `LiquidFormItem.validate` 按 `type: 'number'` 与数值型值比较范围，不再一律比较 `String(value).length`；字符串按字符数、数组按元素数校验，`type: 'number'` 下无法解析为有限数字的值判为错误。批量账号数量 5/6/500 及配额 -1/1024000 边界可通过。同步将四语言 `createBatchNumRange` 提示从 5–200 修正为后端 `CreateAccountBatchDto` 实际的 5–500；新增数值/字符串/数组边界回归测试（ui-cleanup.test.js）。
+- WEB-023：Pagination 恢复受控契约：`handleCurrentChange`/`handleSizeChange` 先发 `update:page`/`update:limit` 供 `.sync` 更新父级状态，再发 `pagination` 通知查询；改变每页条数时按新容量收敛页码。新增事件顺序与页码收敛回归测试。
 
-- WEB-015：服务器列表配额条移除固定45%演示值，新增 `trafficPercent`：combined 模式按 `totalUsed/totalLimit`，separate 模式按较大方向 `used/limit`，限额为0（未上报/不限额）时进度条为空。mock 服务器补充与后端 `ServerTrafficStatusVo` 一致的 `trafficStatus` 数据（含上下行/总量、reached），实屏复核仍待登记。
+- WEB-015：服务器列表配额条移除固定45%演示值，新增 `trafficPercent`：combined 模式按 `totalUsed/totalLimit`，separate 模式按较大方向 `used/limit`，限额为0（未上报/不限额）时进度条为空。mock 服务器补充与后端 `ServerTrafficStatusVo` 一致的 `trafficStatus` 数据（含上下行/总量、reached）。
+- WEB-016：四处页签统一迁移到共享 `LiquidTabs` 组件（role=tab + aria-selected + roving tabindex，ArrowLeft/Right/Home/End 焦点与激活联动），不再是只有 tablist 外壳的按钮组；首页流量周期组、排行周期组、服务器限额模式组补 `aria-pressed` 与 `aria-label`；主题 `LiquidPalettePicker` radiogroup 补方向键/Home/End 焦点管理与选中联动。桌面/移动导航沿用现有 `aria-current` 契约未改动。
 - WEB-017：任务、账号、服务器、邮件、黑名单、节点六处原生列表统一空状态：请求失败显示“请求失败，请重试”，无数据显示“暂无数据”，样式对齐共享表格（`.tbl-empty`，节点栅格用 `.node-grid__empty`）。加载中仍由 `v-liquid-loading` 覆盖。
 - WEB-018：LiquidInput 清空按钮在 `disabled`/`readonly` 下不再渲染，`clear()` 方法侧同步防护并对齐 Select/DatePicker 行为；新增 `readonly` prop 并透传原生字段，清空后焦点回到输入框。
+- WEB-019：`LiquidDatePicker` 统一手输框与时间控件草稿状态：新增 `resolveDraftSelection`，手输文本自带时间时以手输为准，否则应用时间控件草稿；Enter 应用与点击确定走同一路径，不再被旧 `timeText` 覆盖。
+- WEB-020：`LiquidCodeEditor` 接入 `liquid-form-control`/`liquid-control-emitter` 共享协议：textarea 注册到最近 FormItem，标签经 `aria-labelledby` 关联、控件错误与 FormItem 错误经 `aria-describedby`/`aria-invalid` 关联；显式可访问名称优先，组件内格式错误仍保留独立 alert。模板内容标签（`contentLabel`）可定位输入区。
+- WEB-021：删除订阅导出弹窗在≤640px下的独立顶部对齐/高度覆盖（`align-self: flex-start`、`margin-top`、body `max-height` 覆盖已移除），节点页与普通用户首页两个入口共用同一组件，回归共享 Dialog 安全区居中规则。
 - WEB-024：账号、节点、服务器、邮件、文件任务、黑名单六处列表请求失败时复位 loading 并记录 listError；移除固定1.5秒延迟。内核页 `inventoryUnavailable` 时显示“内核清单不可用”替代描述表；轮询 `loadTasks` 在再次排程前检查组件销毁状态，迟到响应不再创建新 timer。
+- WEB-025：删除无应用引用的 `NodeDetail.vue`/`NodeQrcode.vue` 组件；移除 `server-detail` 路由（依赖已无写入方的 nodeServerId Cookie，详情由服务器列表内嵌面板承载）、四语言 `serverDetail` 词条及面包屑登记。路由删除为源码级检查，未发现可达入口。
 - WEB-026：普通用户首页“每月1日流量自动重置”改为消费真实策略：后端 `PanelGroupVo` 新增 `resetDownloadAndUploadMonth`（`service.PanelGroup` 读取系统设置），开启时显示原文案，关闭显示“不自动重置”，接口未返回策略时整块省略；mock 数据同步补充该字段。
+- WEB-027：Web 文件上传统一待提交/上传中/失败/成功状态：失败不再清空草稿可直接重试，成功后清空 `fileList` 与原生 input；提交按钮 busy 防重入并显示“上传中…”。`ImportTip` 提交补防重入守卫。对齐 Logo 上传已有的 busy/finally 控制。
+- WEB-028：全局 Select 尾部槽位改为按状态分配：内边距消费共享尺寸 Token（`--ui-control-size-padding`），箭头/清空按钮间距统一为 `--ui-select-tail-gap`，非 clearable 或有选中时不预留空槽；DatePicker 触发器同步修正固定右 40px。sm/md/lg、有无清空场景由 Token 层覆盖，无页面级补丁。
 - WEB-029：`timeStampToDate` 统一无效值占位：`undefined/null/''/0` 及无法解析的值返回“—”，不再输出 NaN 日期；内核任务历史 `createdAt` 通过 `formatTaskTime` 格式化，不再输出原始值。
+- WEB-030：普通用户首页辅助小字接入 `--supporting-text-ink`：`hero-meta` 到期时间/可用节点、已用比例 `usage-label` 不再使用 ink-3/faint 40% 透明度。
+- WEB-031：登录/注册原生输入接入共享错误状态和标签协议：新增 `native-form-control` mixin，输入经 `nativeControlAttrs` 获得表单项 `aria-labelledby` 关联、错误时 `aria-describedby` + `aria-invalid`；显隐按钮保留独立 `aria-label`/`aria-pressed`。
+- WEB-032：YAML 与 JSON 成为共享编辑器平级语言能力：`languageProcessors` 按 `format` 提供各自的 parse/stringify（YAML 经 `js-yaml` safeLoad/safeDump，保留注释语义外的结构、锚点别名经 noRefs 展开），格式化按钮在两种语言下同布局同交互；解析失败提示对应语言错误且不覆盖原文；不通过 JSON 转换代替 YAML 编辑。JSON 行为无回退，新增合法/非法、空内容、幂等、错误恢复回归测试。Clash.Meta 模板 `format` 由空改为 `yaml`。
+- WEB-033：以手机模式两行布局为统一标准推广至全部断点：`.liquid-form-item` 改为 flex 纵向布局，标签独占第一行（`width: 100%`、`text-align: left`），控件位于第二行；`uniform-dialog-form` 132px 浮动标签规则移除，全部表单项共用 `--control-max-width` 上限。长标签换行不挤压框体。
 
 最近登记：2026-09-01 CST。验证与边界见《代码审查》最新记录。
