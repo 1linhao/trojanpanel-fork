@@ -4,6 +4,16 @@
 
 2026-09-01 worker 复审后的未通过源码项已完成针对性修复并通过自动门禁；这不等于全部实屏、真实提交或真实后端验收完成。以下受本轮禁止提交约束、mock 数据能力或实屏矩阵限制的事项继续保持开放。
 
+## 架构规范化待办
+
+2026-09-01 对可组合资源包及 Vue 插件接入复查后，功能门禁通过，但下列目标架构收尾仍未完成：
+
+- [ ] WEB-034：建立唯一生产 Composition Root，实际接入 `createUiRuntime`、`createFrostedMaterial` 与 Shell Adapter；删除应用层重复主题色表和手写材质属性，生产消费包公开 exports，不再通过 Vite 别名直连各包 `src`。
+- [ ] WEB-035：补全并自动校验跨包 CSS Custom Property 契约，覆盖 Dialog/Overlay、按钮交互阴影、控件尺寸和 View Transition 等实际接缝；组件 props 对 tone/size/density/state/motion role 使用契约校验器。
+- [ ] WEB-036：补齐资源包独立 lint、Stylelint 与依赖图/循环依赖门禁；让 `test:ui-labs:e2e` 自行构建所需 Lab，避免依赖调用顺序或现存 `dist/ui-labs`。
+- [ ] WEB-037：`createVue2Components` 改为必须显式传入 `include`（或默认空集），不再默认全量注册；Dialog/Shell 的可访问名称由调用方/i18n 注入，移除通用包中的固定中英文文案。
+- [ ] WEB-038：按组件迁移进度删除 `UiPanel`/`UiSheet` 输出的 `glass/card/sheet` 兼容类、`main.js` 的旧 Liquid 全局注册和应用双轨样式；清点并消除未登记的 `!important` 与静态 inline style。Sass `@import` 迁移单独按[交接 TODO](Sass迁移TODO.md)执行，不与本项混改。
+
 ## 待验收
 
 以下事项源码层面已完成，但按验收口径需要实屏复核或真实后端确认后才能关闭：
