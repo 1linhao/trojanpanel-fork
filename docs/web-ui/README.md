@@ -1,25 +1,27 @@
 # Web UI 当前状态
 
-核对日期：2026-09-01；适用于当前 worker 工作树对应的 UI 源码，不代表生产已部署。以下为已有能力，仍有实屏、真实提交与真实后端验收边界，不能理解为全局验收通过。
+核对日期：2026-09-02；适用于当前 worker 工作树对应的 UI 源码，不代表生产已部署。以下为已有能力，仍有实屏、真实提交与真实后端验收边界，不能理解为全局验收通过。
 
 ## 已实现
 
 - 保持磨砂玻璃视觉，不执行旧 LiquidUI 交接中的液态玻璃改版。
 - [UI 工作区](../../trojan-panel-ui/packages/)已有 7 个资源包：contracts、components-vue2、layout-app-shell-vue2、material-frosted、material-flat-test、icons、motion-native；Integration / Minimal Lab 用于验证独立组合。
-- 生产接入 `UiPanel`（auth/content/metric）、`UiSheet`、`UiDialog`；移动弹窗安全区内居中，长内容内部滚动。
+- 生产通过唯一 Composition Root 组合 Runtime、Frosted Material、选择性 Vue 2 组件和业务 Shell Adapter；`UiPanel`、`UiSheet`、`UiDialog` 均从包公开 exports 消费。
+- `serve` / `build` 在入口执行前生成 7 个资源包的本地 `dist`，干净克隆不依赖预存包产物；Lab E2E 同样自行生成资源包与 Lab。
 - 按钮共用 `nav-lift` 交互。控制器保留静止/当前视觉命中矩形，避免上移后底边反复进出 hover；专用控件保留自己的 DOM。
 - 导航、按钮和输入控件共用内联 SVG 图标。旧遮罩图标、Sprite 注册入口及图标独立矩形底色已移除。
 - 手机/平板背景中央新增主题色光斑；一级内容面板与状态栏共用玻璃通透度。
 - 已清理旧导航树、失效结构组件、样式和文案；品牌 Logo/系统名、认证页与 404 使用共享实现。
 - Confirm/Prompt 与普通 Dialog 共用覆盖层栈；统一焦点、Escape、滚动锁、卸载清理和移动安全区。Button/Select 使用有效的 sm/md/lg 尺寸，图标与清空操作补齐键盘语义。
-- 生产颜色、阴影色与模糊配方迁入 `material-frosted/production.css`，保留原值；Dialog 几何只有组件包一个所有者。控件过渡、加载旋转、环境漂移、消息清理与分页滚动接入 motion 资源。
+- 生产颜色、阴影色、模糊与 Overlay 配方由 `material-frosted/production.css` 所有；跨包 `--ui-*` 变量在 contracts 登记并由架构门禁完整性校验。
+- AppShell 保留 1060px 平板/移动导航断点、当前项自动显露及原生产几何；应用内旧布局规则和全部 Sass `@extend` 兼容别名已删除。
 
 ## 扩展边界与未迁移范围
 
 - 组件、布局、材质、图标、动画由应用组合层连接。公开接口以各包 README 与契约测试为准。
 - 按钮动画适配器暴露 `connect/disconnect/destroy`；组件保留 `motion-role`、`motion-key`、`data-ui-part`。
 - View Transition 捕获仅在祖先显式设置 `data-ui-view-transitions="active"` 时启用，结束及失败时必须清除；空闲时不设置实际 `view-transition-name`，避免隔离玻璃背景采样。
-- UI 规范化不等于所有资源已迁入包：完整表单/表格/选择器、主题持久化 Adapter、生产 Shell 的业务 Adapter 分离仍须按源码逐项审计。生产布局仍为 `src/layout/index.vue`，不能宣称已全部替换成通用 Shell。源码别名接入也仍保留，公开 exports 由独立打包检查验证。
+- UI 规范化不等于所有业务控件已迁入资源包：完整表单/表格/选择器仍由应用 Composition Adapter 显式登记。生产 `src/layout/index.vue` 已消费通用 `UiAppShell`，角色、路由、品牌、个人资料、退出及本地角色预览由应用 Adapter/slot 保留。
 - 模板增删接口与后续页面/面板变形动画属于预留能力，不在本次文档清理中自动实施。
 
 ## 后续入口
