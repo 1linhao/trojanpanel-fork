@@ -6,7 +6,9 @@
 
 ## 架构规范化待办
 
-2026-09-01 对可组合资源包及 Vue 插件接入复查后，功能门禁通过，但下列目标架构收尾仍未完成：
+2026-09-01 对可组合资源包及 Vue 插件接入复查后登记了下列目标架构收尾项：
+
+2026-09-02 再次复查发现的干净副本构建顺序、材质逐包完整性、Vue validator、Motion 平滑滚动、布局阴影所有权、调色板重复、内部类跨边界和包文档缺口均已修复；Sass `@import` 迁移也已完成。门禁现在覆盖上述边界。
 
 - [x] WEB-034：建立唯一生产 Composition Root，实际接入 `createUiRuntime`、`createFrostedMaterial` 与 Shell Adapter；删除应用层重复主题色表和手写材质属性，生产消费包公开 exports，不再通过 Vite 别名直连各包 `src`。
 - [x] WEB-035：补全并自动校验跨包 CSS Custom Property 契约，覆盖 Dialog/Overlay、按钮交互阴影、控件尺寸和 View Transition 等实际接缝；组件 props 对 tone/size/density/state/motion role 使用契约校验器。
