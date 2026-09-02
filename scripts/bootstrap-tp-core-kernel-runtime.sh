@@ -11,7 +11,9 @@ usage() {
 默认仅执行只读预检；必须显式传入 --apply 才会修改远端。
 
 选项：
-  --instance <node-sf|node-sg2>       默认 node-sf
+  --instance <node-sf|node-hk|node-sg> 默认 node-sf
+  --node-server-id <正整数>           面板 node_server.id，流量记账必填
+  --installer-url <HTTPS URL>         新版 custom_install.sh 固定地址
   --ssh-port <端口>
   --identity <SSH私钥>
   --apply
@@ -29,6 +31,8 @@ target=""
 image=""
 client_ca=""
 server_name=""
+node_server_id=""
+installer_url=""
 instance="node-sf"
 ssh_port=""
 identity=""
@@ -41,6 +45,8 @@ while [[ $# -gt 0 ]]; do
     --image) image="${2:-}"; shift 2 ;;
     --client-ca) client_ca="${2:-}"; shift 2 ;;
     --server-name) server_name="${2:-}"; shift 2 ;;
+    --node-server-id) node_server_id="${2:-}"; shift 2 ;;
+    --installer-url) installer_url="${2:-}"; shift 2 ;;
     --instance) instance="${2:-}"; shift 2 ;;
     --ssh-port) ssh_port="${2:-}"; shift 2 ;;
     --identity) identity="${2:-}"; shift 2 ;;
@@ -58,9 +64,11 @@ done
 [[ -f "$client_ca" ]] || die "客户端 CA 公钥文件不存在"
 grep -q -- "BEGIN CERTIFICATE" "$client_ca" || die "--client-ca 不是 PEM 证书"
 [[ "$server_name" =~ ^[A-Za-z0-9.-]+$ ]] || die "节点证书域名无效"
+[[ "$node_server_id" =~ ^[1-9][0-9]*$ ]] || die "缺少或无效的 --node-server-id"
+[[ -z "$installer_url" || "$installer_url" =~ ^https:// ]] || die "--installer-url 必须使用 HTTPS"
 case "$instance" in
-  node-sf|node-sg2) ;;
-  *) die "--instance 只允许 node-sf 或 node-sg2" ;;
+  node-sf|node-hk|node-sg|node-sg2) ;;
+  *) die "--instance 只允许 node-sf、node-hk、node-sg 或 node-sg2" ;;
 esac
 if [[ "$cleanup_sf" == "true" && "$instance" != "node-sg2" ]]; then
   die "证书清理开关只能用于 node-sg2"
@@ -70,7 +78,18 @@ ssh_args=(-o BatchMode=yes -o ConnectTimeout=10)
 [[ -z "$ssh_port" ]] || ssh_args+=(-p "$ssh_port")
 [[ -z "$identity" ]] || ssh_args+=(-i "$identity")
 remote_root="/root/vps-script-factory/$instance"
-remote_env="$remote_root/node.env.yaml"
+remote_env="$(ssh "${ssh_args[@]}" "$target" bash -s -- "$remote_root" <<'REMOTE_ENV'
+set -euo pipefail
+root="$1"
+for candidate in "$root/node.env.yaml" "$root/runtime/trojan-panel.yaml"; do
+  if [[ -f "$candidate" ]]; then
+    printf '%s\n' "$candidate"
+    exit 0
+  fi
+done
+exit 1
+REMOTE_ENV
+)" || die "远端没有找到节点部署配置"
 
 echo "预检目标：$target（实例 $instance）"
 ssh "${ssh_args[@]}" "$target" bash -s -- "$remote_env" <<'REMOTE_PREFLIGHT'
@@ -79,6 +98,7 @@ env_path="$1"
 [[ -f "$env_path" ]]
 command -v docker >/dev/null
 command -v yq >/dev/null
+command -v curl >/dev/null
 container="$(docker ps -a --format '{{.Names}}' | awk '$0=="trojan-panel-core"{print; exit}')"
 [[ "$container" == "trojan-panel-core" ]]
 docker inspect "$container" --format '容器={{.Name}} 镜像={{.Image}} 状态={{.State.Status}}'
@@ -99,7 +119,7 @@ scp "${scp_args[@]}" "$client_ca" "$target:$ca_remote"
 
 set +e
 ssh "${ssh_args[@]}" "$target" bash -s -- \
-  "$remote_root" "$remote_env" "$image" "$ca_remote" "$server_name" "$cleanup_sf" <<'REMOTE_APPLY'
+  "$remote_root" "$remote_env" "$image" "$ca_remote" "$server_name" "$cleanup_sf" "$node_server_id" "$installer_url" <<'REMOTE_APPLY'
 set -euo pipefail
 remote_root="$1"
 env_path="$2"
@@ -107,10 +127,26 @@ image="$3"
 ca_source="$4"
 server_name="$5"
 cleanup_sf="$6"
+node_server_id="$7"
+installer_url="$8"
 data_root="/tpdata/trojan-panel-core"
 runtime_root="$data_root/runtime"
 backup_root="$remote_root/backups/kernel-runtime-$(date -u +%Y%m%dT%H%M%SZ)"
 container="trojan-panel-core"
+
+run_node_installer() {
+  local url installer
+  url="$(yq -r '.trojan_panel.url // ""' "$env_path")"
+  [[ "$url" =~ ^https:// ]] || { echo "节点安装器 URL 无效" >&2; return 1; }
+  installer="$(mktemp /tmp/trojan-panel-node-installer.XXXXXX)"
+  curl -fsSL "$url" -o "$installer"
+  chmod 700 "$installer"
+  if ! bash "$installer" node "$env_path"; then
+    unlink "$installer"
+    return 1
+  fi
+  unlink "$installer"
+}
 
 mkdir -p "$backup_root" "$runtime_root" "$data_root/pki"
 chmod 700 "$backup_root" "$data_root/pki"
@@ -123,10 +159,7 @@ restore() {
   cp -a "$backup_root/node.env.yaml" "$env_path"
   previous_image="$(cat "$backup_root/previous-image.txt")"
   yq -i ".trojan_panel.core_image = \"$previous_image\"" "$env_path"
-  (
-    cd "$remote_root"
-    bash dep_node.sh
-  ) || true
+  run_node_installer || true
 }
 trap restore ERR
 
@@ -158,15 +191,17 @@ yq -i \
   ".trojan_panel.core_image = \"$image\" |
    .trojan_panel.grpc_tls_mode = \"mtls\" |
    .trojan_panel.grpc_tls_server_name = \"$server_name\" |
-   .trojan_panel.grpc_client_ca_path = \"$data_root/pki/client-ca.crt\" |
-   .trojan_panel.kernel_runtime_path = \"$runtime_root\"" \
-  "$env_path"
+	   .trojan_panel.grpc_client_ca_path = \"$data_root/pki/client-ca.crt\" |
+	   .trojan_panel.kernel_runtime_path = \"$runtime_root\" |
+	   .trojan_panel.node_server_id = \"$node_server_id\"" \
+	  "$env_path"
+
+	if [[ -n "$installer_url" ]]; then
+	  INSTALLER_URL="$installer_url" yq -i '.trojan_panel.url = strenv(INSTALLER_URL)' "$env_path"
+	fi
 
 docker pull "$image"
-(
-  cd "$remote_root"
-  bash dep_node.sh
-)
+run_node_installer
 
 deadline=$((SECONDS + 60))
 until [[ "$(docker inspect "$container" --format '{{.State.Running}}')" == "true" ]]; do
